@@ -9,7 +9,8 @@ from linebot.v3.messaging import (
     ApiClient,
     MessagingApi,
     ReplyMessageRequest,
-    TextMessage
+    TextMessage,
+    ImageMessage
 )
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from rest_framework.response import Response
@@ -25,6 +26,12 @@ def userExperience(line_bot_api, event):
     # User Introduction
     for experience in experienceList:
         response.append(TextMessage(text=f"{experience}"))
+    response.append(
+        ImageMessage(
+            original_content_url = "https://line-workshop-test.s3.amazonaws.com/06_developing.png",
+            preview_image_url = "https://line-workshop-test.s3.amazonaws.com/06_developing.png",
+        ),
+    )
     line_bot_api.reply_message_with_http_info(
         ReplyMessageRequest(
             reply_token=event.reply_token,

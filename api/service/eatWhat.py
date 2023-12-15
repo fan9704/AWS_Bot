@@ -5,7 +5,7 @@ from linebot.v3.messaging import (
 
 
 def eatWhat(line_bot_api, event):
-    foodList = ["壽司","拉麵","鐵板燒","咖哩飯","Pizza"]
+    foodList = ["火鍋", "拉麵", "壽司", "咖哩飯", "Pizza"]
     response = []
     for food in foodList:
         response.append(
