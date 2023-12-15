@@ -1,49 +1,26 @@
 import logging
+import os
 
-from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest
 from linebot.v3 import WebhookHandler
-from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.messaging import (
-    Configuration,
-    ApiClient,
-    MessagingApi,
     ReplyMessageRequest,
     TextMessage,
     ImageMessage
 )
-from linebot.v3.webhooks import MessageEvent, TextMessageContent
-from rest_framework import status
-from rest_framework.response import Response
+from linebot.v3.webhooks import MessageEvent
+from linebot import LineBotApi
+from linebot import WebhookHandler
 
-configuration = Configuration(access_token=settings.LINE_CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(settings.LINE_CHANNEL_SECRET)
+line_bot_api = LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
+handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
 
 logger = logging.getLogger(__name__)
 
+def lambda_handler(event, context):
+    @handler.add(MessageEvent, message=TextMessage)
+    def handle_text_message(event):
 
-def callback(request):
-    if request.method == "POST":
-        signature = request.META['HTTP_X_LINE_SIGNATURE']
-        body = request.body.decode()
-        try:
-            handler.handle(body, signature)
-        except InvalidSignatureError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)  # Invalid Signature
-        except Exception as E:
-            print(E)
-            return Response(status=status.HTTP_400_BAD_REQUEST)  # Exception
-        return HttpResponse("Success.")  # Success
-    else:
-        return HttpResponseBadRequest()
-
-
-# Basic Reply same word as user input
-@handler.add(MessageEvent, message=TextMessageContent)
-def handle_message(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        keyword = event.message.text.lower().split()
+        keyword = event.message.text
         if "app介紹" in keyword:
             introduction(line_bot_api,event)
         elif "人物介紹" in keyword:
@@ -63,6 +40,9 @@ def handle_message(event):
                     messages=[TextMessage(text=event.message.text)]
                 )
             )
+
+        event_text = event.message.text
+
 
 def eatWhat(line_bot_api, event):
     foodList = ["火鍋", "拉麵", "壽司", "咖哩飯", "Pizza"]
